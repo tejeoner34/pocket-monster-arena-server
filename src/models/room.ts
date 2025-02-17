@@ -1,17 +1,19 @@
 import { v4 as uuidv4 } from 'uuid';
-import { MoveDetail, Pokemon } from './pokemon.model.js';
+import { ArenaPokemon, MoveDetail, Pokemon } from './pokemon.model.js';
 import { OnlineArenaDataType, ChosenMovesType } from './arena.model.js';
 import { getPokemon } from '../api/pokemon.js';
+import { getTurnOrder, initiatePokemonForArena } from '../lib/arena.utils.js';
+import { User } from './user.js';
 
 export class Room implements OnlineArenaDataType {
   public readonly id: string;
   users: string[] = [];
   isOver: boolean;
-  turnOrder: [string, string];
+  turnOrder: User['id'][];
   isTurnOver: boolean;
   message: string;
   choseMoves: ChosenMovesType;
-  pokemons: Map<string, Pokemon>;
+  pokemons: Map<User['id'], Pokemon>;
 
   constructor() {
     this.id = uuidv4();
@@ -53,7 +55,7 @@ export class Room implements OnlineArenaDataType {
   }
 
   private async addPokemon(userId: string) {
-    const pokemon = await getPokemon();
+    const pokemon: ArenaPokemon = initiatePokemonForArena(await getPokemon());
     this.pokemons.set(userId, pokemon);
   }
 
@@ -63,6 +65,7 @@ export class Room implements OnlineArenaDataType {
         await this.addPokemon(userId);
       })
     );
+    this.turnOrder = getTurnOrder(this.pokemons);
   }
 
   toPlainObject() {
