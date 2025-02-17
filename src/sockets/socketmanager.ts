@@ -1,49 +1,67 @@
 import { Server, Socket } from 'socket.io';
-import { Room } from '../models/room.js';
-import { rooms, users } from '../state/state.js';
+import { RoomsManager } from '../models/roomsManager.js';
+import { UsersManager } from '../models/usersManager.js';
+import { Pokemon } from '../models/pokemon.model.js';
+
+const roomManager = new RoomsManager();
+const usersManager = new UsersManager();
 
 export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
-    const userId = socket.id;
-    users.set(userId, userId);
+    usersManager.createUser(socket.id);
 
-    console.log('User connected:', userId);
-
-    // Example: Create room on request
-    socket.on('create-room', (roomId: string) => {
-      if (!rooms.has(roomId)) {
-        const room = new Room(roomId);
-        rooms.set(roomId, room);
-        console.log(`Room created: ${roomId}`);
-      } else {
-        console.log(`Room ${roomId} already exists`);
+    socket.on(
+      'challenge-user',
+      ({ challengerId, rivalId }: { challengerId: string; rivalId: string }) => {
+        const foundUser = usersManager.getUser(rivalId);
+        if (foundUser) {
+          socket.broadcast.to(foundUser.id).emit('receive-challenge', {
+            challengerId,
+            message: 'challengeMessage',
+          });
+        } else {
+          socket.emit('no-user-found');
+        }
       }
-    });
+    );
 
-    // Example: Join room
-    socket.on('join-room', (roomId: string) => {
-      const room = rooms.get(roomId);
-      if (room) {
-        room.addUser(userId);
-        console.log(`${userId} joined room ${roomId}`);
-      } else {
-        console.log(`Room ${roomId} not found`);
+    socket.on(
+      'challenge-response',
+      async ({
+        userId,
+        accept,
+        challengerId,
+      }: {
+        userId: string;
+        accept: boolean;
+        challengerId: string;
+      }) => {
+        if (accept) {
+          const room = await roomManager.createRoom([userId, challengerId]);
+          // Add both users to the room
+          socket.join(room.id);
+          io.to(challengerId).socketsJoin(room.id);
+          io.to(room.id).emit('challenge-accepted', { room: room.toPlainObject() });
+        } else {
+          io.to(challengerId).emit('challenge-rejected');
+        }
       }
-    });
+    );
+
+    // socket.on('send-pokemon-data', ({userId, pokemonData, roomId}: {userId: string, pokemonData: Pokemon, roomId: string}) => {
+    //   const room = roomManager.getRoom(roomId);
+    //   if (room) {
+    //     room.addPokemon(userId, pokemonData);
+    //     // Need to check if the room is complete and the send the data to user
+    //   }
+    // });
 
     socket.on('disconnect', () => {
-      console.log('User disconnected:', userId);
-      users.delete(userId);
-
-      // Clean up user from rooms
-      rooms.forEach((room) => {
-        room.removeUser(userId);
-        if (room.users.length === 0) {
-          rooms.delete(room.id);
-        }
-      });
-
-      console.log('Current users:', Array.from(users.keys()));
+      usersManager.removeUser(socket.id);
+      const disconnectedUser = usersManager.getUser(socket.id);
+      if (disconnectedUser?.roomId) {
+        roomManager.removeUserFromRoom(socket.id, disconnectedUser.roomId);
+      }
     });
   });
 };

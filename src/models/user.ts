@@ -1,5 +1,5 @@
 export class User {
-  id: string;
+  public readonly id: string;
   roomId: string | null;
 
   constructor(id: string) {
