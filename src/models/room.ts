@@ -5,6 +5,7 @@ import { getPokemon } from '../api/pokemon.js';
 import { getTurnOrder, initiatePokemonForArena } from '../lib/arena.utils.js';
 import { User } from './user.js';
 import { BattleFlow, createBattleFlow } from './battleFlow.js';
+import { updatePokemonHealth } from '../lib/pokemon.utils.js';
 
 export class Room implements OnlineArenaDataType {
   public readonly id: string;
@@ -14,7 +15,7 @@ export class Room implements OnlineArenaDataType {
   isTurnOver: boolean;
   message: string;
   choseMoves: ChosenMovesType;
-  pokemons: Map<User['id'], Pokemon>;
+  pokemons: Map<User['id'], ArenaPokemon>;
   battleFlow: BattleFlow = [];
   clientsFinished: Set<string> = new Set();
   isArenaReady: boolean;
@@ -23,7 +24,7 @@ export class Room implements OnlineArenaDataType {
     this.id = uuidv4();
     this.isOver = false;
     this.turnOrder = ['', ''];
-    this.isTurnOver = false;
+    this.isTurnOver = true;
     this.message = '';
     this.choseMoves = {};
     this.pokemons = new Map();
@@ -34,7 +35,6 @@ export class Room implements OnlineArenaDataType {
     this.users = users;
     await this.setPokemonsForUsers();
     this.turnOrder = getTurnOrder(this.pokemons);
-    this.battleFlow = createBattleFlow(this.turnOrder[0], this.turnOrder[1]);
     this.isArenaReady = true;
   }
 
@@ -48,6 +48,20 @@ export class Room implements OnlineArenaDataType {
 
   setChosenMoves(userId: string, move: MoveDetail) {
     this.choseMoves[userId] = move;
+  }
+
+  updatePokemonsHealth() {
+    this.users.forEach((userId) => {
+      const pokemon = this.pokemons.get(userId);
+      if (pokemon) {
+        updatePokemonHealth(pokemon);
+      }
+    });
+    this.setTurnFlow();
+  }
+
+  setTurnFlow() {
+    this.battleFlow = createBattleFlow(this.turnOrder[0], this.turnOrder[1], this);
   }
 
   setMessage(message: string) {

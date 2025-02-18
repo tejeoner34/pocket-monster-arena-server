@@ -1,21 +1,35 @@
 import { Server, Socket } from 'socket.io';
 import { RoomsManager } from '../models/roomsManager.js';
 import { UsersManager } from '../models/usersManager.js';
-import { Pokemon } from '../models/pokemon.model.js';
+import { MoveDetail } from '../models/pokemon.model.js';
 
 const roomManager = new RoomsManager();
 const usersManager = new UsersManager();
 
+const LISTENERS = {
+  connection: 'connection',
+  disconnect: 'disconnect',
+  challengeUser: 'challenge-user',
+  challengeResponse: 'challenge-response',
+  chooseMove: 'choose-move',
+};
+
+const EVENTS = {
+  challengeAccepted: 'challenge-accepted',
+  challengeRejected: 'challenge-rejected',
+  receivedChallenge: 'received-challenge',
+};
+
 export const setupSocketHandlers = (io: Server) => {
-  io.on('connection', (socket: Socket) => {
+  io.on(LISTENERS.connection, (socket: Socket) => {
     usersManager.createUser(socket.id);
 
     socket.on(
-      'challenge-user',
+      LISTENERS.challengeUser,
       ({ challengerId, rivalId }: { challengerId: string; rivalId: string }) => {
         const foundUser = usersManager.getUser(rivalId);
         if (foundUser) {
-          socket.broadcast.to(foundUser.id).emit('receive-challenge', {
+          socket.broadcast.to(foundUser.id).emit(EVENTS.receivedChallenge, {
             challengerId,
             message: 'challengeMessage',
           });
@@ -26,29 +40,37 @@ export const setupSocketHandlers = (io: Server) => {
     );
 
     socket.on(
-      'challenge-response',
+      LISTENERS.challengeResponse,
       async ({ userId, accept, rivalId }: { userId: string; accept: boolean; rivalId: string }) => {
         if (accept) {
           const room = await roomManager.createRoom([userId, rivalId]);
           // Add both users to the room
           socket.join(room.id);
           io.to(rivalId).socketsJoin(room.id);
-          io.to(room.id).emit('challenge-accepted', { room: room.toPlainObject() });
+          io.to(room.id).emit(EVENTS.challengeAccepted, { room: room.toPlainObject() });
         } else {
-          io.to(rivalId).emit('challenge-rejected');
+          io.to(rivalId).emit(EVENTS.challengeRejected);
         }
       }
     );
 
-    // socket.on('send-pokemon-data', ({userId, pokemonData, roomId}: {userId: string, pokemonData: Pokemon, roomId: string}) => {
-    //   const room = roomManager.getRoom(roomId);
-    //   if (room) {
-    //     room.addPokemon(userId, pokemonData);
-    //     // Need to check if the room is complete and the send the data to user
-    //   }
-    // });
+    socket.on(
+      LISTENERS.chooseMove,
+      ({
+        userId,
+        chosenMove,
+        roomId,
+      }: {
+        userId: string;
+        chosenMove: MoveDetail;
+        roomId: string;
+      }) => {
+        console.log({ userId, chosenMove });
+        roomManager.getRoom(roomId)?.setChosenMoves(userId, chosenMove);
+      }
+    );
 
-    socket.on('disconnect', () => {
+    socket.on(LISTENERS.disconnect, () => {
       usersManager.removeUser(socket.id);
       const disconnectedUser = usersManager.getUser(socket.id);
       if (disconnectedUser?.roomId) {

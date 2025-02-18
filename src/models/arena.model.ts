@@ -1,10 +1,10 @@
-import { MoveDetail, Pokemon } from './pokemon.model.js';
+import { ArenaPokemon, MoveDetail } from './pokemon.model.js';
 import { User } from './user.js';
 
 export interface OnlineArenaDataType {
   id: string;
   users: string[];
-  pokemons: Map<string, Pokemon>;
+  pokemons: Map<string, ArenaPokemon>;
   isOver: boolean;
   turnOrder: User['id'][];
   isTurnOver: boolean;
