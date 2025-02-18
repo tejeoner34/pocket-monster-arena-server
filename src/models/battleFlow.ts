@@ -23,11 +23,7 @@ export const createBattleFlow = (
   }
   return [
     { action: 'attack', userId: userId1, targetId: userId2, waitTime: 1000 },
-    {
-      action: 'receiveDamage',
-      userId: userId2,
-      waitTime: 500,
-    },
+    { action: 'receiveDamage', userId: userId2, waitTime: 500 },
     {
       action: 'updateHealthBar',
       userId: userId2,

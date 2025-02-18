@@ -18,6 +18,7 @@ const EVENTS = {
   challengeAccepted: 'challenge-accepted',
   challengeRejected: 'challenge-rejected',
   receivedChallenge: 'received-challenge',
+  newTurn: 'new-turn',
 };
 
 export const setupSocketHandlers = (io: Server) => {
@@ -47,7 +48,7 @@ export const setupSocketHandlers = (io: Server) => {
           // Add both users to the room
           socket.join(room.id);
           io.to(rivalId).socketsJoin(room.id);
-          io.to(room.id).emit(EVENTS.challengeAccepted, { room: room.toPlainObject() });
+          io.to(room.id).emit(EVENTS.challengeAccepted, { ...room.toPlainObject() });
         } else {
           io.to(rivalId).emit(EVENTS.challengeRejected);
         }
@@ -65,8 +66,16 @@ export const setupSocketHandlers = (io: Server) => {
         chosenMove: MoveDetail;
         roomId: string;
       }) => {
-        console.log({ userId, chosenMove });
-        roomManager.getRoom(roomId)?.setChosenMoves(userId, chosenMove);
+        console.log({ userId, chosenMove: chosenMove.name, roomId });
+        const room = roomManager.getRoom(roomId);
+        if (!room) return;
+
+        room.setChosenMoves(userId, chosenMove);
+        console.log('both users selected move', room.bothUsersChoseMoves);
+        if (room.bothUsersChoseMoves) {
+          console.log('both users chose moves');
+          io.to(room.id).emit(EVENTS.newTurn, { ...room.toPlainObject() });
+        }
       }
     );
 

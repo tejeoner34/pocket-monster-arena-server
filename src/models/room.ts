@@ -31,6 +31,10 @@ export class Room implements OnlineArenaDataType {
     this.isArenaReady = false;
   }
 
+  get bothUsersChoseMoves() {
+    return Object.keys(this.choseMoves).length === 2;
+  }
+
   async initialize(users: string[]) {
     this.users = users;
     await this.setPokemonsForUsers();
@@ -48,6 +52,9 @@ export class Room implements OnlineArenaDataType {
 
   setChosenMoves(userId: string, move: MoveDetail) {
     this.choseMoves[userId] = move;
+    if (this.bothUsersChoseMoves) {
+      this.updatePokemonsHealth();
+    }
   }
 
   updatePokemonsHealth() {
