@@ -10,7 +10,7 @@ export interface OnlineArenaDataType {
   isTurnOver: boolean;
   message: string;
   choseMoves: ChosenMovesType;
-  isRoomComplete: boolean;
+  isArenaReady: boolean;
 }
 
 export type ChosenMovesType = {

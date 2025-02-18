@@ -4,6 +4,7 @@ import { OnlineArenaDataType, ChosenMovesType } from './arena.model.js';
 import { getPokemon } from '../api/pokemon.js';
 import { getTurnOrder, initiatePokemonForArena } from '../lib/arena.utils.js';
 import { User } from './user.js';
+import { BattleFlow, createBattleFlow } from './battleFlow.js';
 
 export class Room implements OnlineArenaDataType {
   public readonly id: string;
@@ -14,6 +15,9 @@ export class Room implements OnlineArenaDataType {
   message: string;
   choseMoves: ChosenMovesType;
   pokemons: Map<User['id'], Pokemon>;
+  battleFlow: BattleFlow = [];
+  clientsFinished: Set<string> = new Set();
+  isArenaReady: boolean;
 
   constructor() {
     this.id = uuidv4();
@@ -23,11 +27,15 @@ export class Room implements OnlineArenaDataType {
     this.message = '';
     this.choseMoves = {};
     this.pokemons = new Map();
+    this.isArenaReady = false;
   }
 
   async initialize(users: string[]) {
     this.users = users;
     await this.setPokemonsForUsers();
+    this.turnOrder = getTurnOrder(this.pokemons);
+    this.battleFlow = createBattleFlow(this.turnOrder[0], this.turnOrder[1]);
+    this.isArenaReady = true;
   }
 
   removeUser(userId: string) {
@@ -36,10 +44,6 @@ export class Room implements OnlineArenaDataType {
 
   setIsOver() {
     this.isOver = true;
-  }
-
-  get isRoomComplete() {
-    return this.users.length === 2 && this.pokemons.size === 2;
   }
 
   setChosenMoves(userId: string, move: MoveDetail) {
@@ -65,13 +69,21 @@ export class Room implements OnlineArenaDataType {
         await this.addPokemon(userId);
       })
     );
-    this.turnOrder = getTurnOrder(this.pokemons);
+  }
+
+  clientFinished(userId: string) {
+    this.clientsFinished.add(userId);
+    if (this.clientsFinished.size === this.users.length) {
+      this.clientsFinished.clear();
+      // Proceed to the next set of actions or end the turn
+    }
   }
 
   toPlainObject() {
     return {
       ...this,
       pokemons: Object.fromEntries(this.pokemons),
+      battleFlow: this.battleFlow,
     };
   }
 }

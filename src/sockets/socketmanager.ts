@@ -27,23 +27,15 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(
       'challenge-response',
-      async ({
-        userId,
-        accept,
-        challengerId,
-      }: {
-        userId: string;
-        accept: boolean;
-        challengerId: string;
-      }) => {
+      async ({ userId, accept, rivalId }: { userId: string; accept: boolean; rivalId: string }) => {
         if (accept) {
-          const room = await roomManager.createRoom([userId, challengerId]);
+          const room = await roomManager.createRoom([userId, rivalId]);
           // Add both users to the room
           socket.join(room.id);
-          io.to(challengerId).socketsJoin(room.id);
+          io.to(rivalId).socketsJoin(room.id);
           io.to(room.id).emit('challenge-accepted', { room: room.toPlainObject() });
         } else {
-          io.to(challengerId).emit('challenge-rejected');
+          io.to(rivalId).emit('challenge-rejected');
         }
       }
     );
