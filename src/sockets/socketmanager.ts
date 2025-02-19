@@ -2,24 +2,18 @@ import { Server, Socket } from 'socket.io';
 import { RoomsManager } from '../models/roomsManager.js';
 import { UsersManager } from '../models/usersManager.js';
 import { MoveDetail } from '../models/pokemon.model.js';
+import { Room } from '../models/room.js';
+import { User } from '../models/user.js';
+import {
+  LISTENERS,
+  EVENTS,
+  ChooseMoveArgs,
+  ChallengeResponseArgs,
+  GameOverArgs,
+} from '../models/sockets.model.js';
 
 const roomManager = new RoomsManager();
 const usersManager = new UsersManager();
-
-const LISTENERS = {
-  connection: 'connection',
-  disconnect: 'disconnect',
-  challengeUser: 'challenge-user',
-  challengeResponse: 'challenge-response',
-  chooseMove: 'choose-move',
-};
-
-const EVENTS = {
-  challengeAccepted: 'challenge-accepted',
-  challengeRejected: 'challenge-rejected',
-  receivedChallenge: 'received-challenge',
-  newTurn: 'new-turn',
-};
 
 export const setupSocketHandlers = (io: Server) => {
   io.on(LISTENERS.connection, (socket: Socket) => {
@@ -42,7 +36,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(
       LISTENERS.challengeResponse,
-      async ({ userId, accept, rivalId }: { userId: string; accept: boolean; rivalId: string }) => {
+      async ({ userId, accept, rivalId }: ChallengeResponseArgs) => {
         if (accept) {
           const room = await roomManager.createRoom([userId, rivalId]);
           // Add both users to the room
@@ -55,29 +49,23 @@ export const setupSocketHandlers = (io: Server) => {
       }
     );
 
-    socket.on(
-      LISTENERS.chooseMove,
-      ({
-        userId,
-        chosenMove,
-        roomId,
-      }: {
-        userId: string;
-        chosenMove: MoveDetail;
-        roomId: string;
-      }) => {
-        console.log({ userId, chosenMove: chosenMove.name, roomId });
-        const room = roomManager.getRoom(roomId);
-        if (!room) return;
+    socket.on(LISTENERS.chooseMove, ({ userId, chosenMove, roomId }: ChooseMoveArgs) => {
+      const room = roomManager.getRoom(roomId);
+      if (!room) return;
 
-        room.setChosenMoves(userId, chosenMove);
-        console.log('both users selected move', room.bothUsersChoseMoves);
-        if (room.bothUsersChoseMoves) {
-          console.log('both users chose moves');
-          io.to(room.id).emit(EVENTS.newTurn, { ...room.toPlainObject() });
-        }
+      room.setChosenMoves(userId, chosenMove);
+      if (room.bothUsersChoseMoves) {
+        io.to(room.id).emit(EVENTS.newTurn, { ...room.toPlainObject() });
       }
-    );
+    });
+
+    socket.on(LISTENERS.gameOver, ({ userId, roomId }: GameOverArgs) => {
+      const room = roomManager.getRoom(roomId);
+      if (room) {
+        room.isOver = true;
+        io.to(room.id).emit(EVENTS.gameOver, { winner: userId });
+      }
+    });
 
     socket.on(LISTENERS.disconnect, () => {
       usersManager.removeUser(socket.id);
