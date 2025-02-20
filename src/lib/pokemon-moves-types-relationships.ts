@@ -190,23 +190,6 @@ export const getMoveEffectivinesInfo = (
   return effectiveness ?? neutralDamage;
 };
 
-export const getMostEffectiveMove = (moves: ArenaMoves, rivalPokemonTypes: PokemonType[]) => {
-  const effectivenesArray = moves.map((move) => {
-    const effectiveness = getMoveEffectivinesInfo(
-      move.type.name as PokemonType,
-      rivalPokemonTypes[0]
-    );
-    return {
-      move,
-      effectiveness,
-    };
-  });
-  const mostEffective = effectivenesArray.sort(
-    (a, b) => b.effectiveness.value - a.effectiveness.value
-  )[0];
-  return mostEffective.move;
-};
-
 export const getRemainingHP = ({
   pokemonHP,
   receivedAttackEffectivinessIndex,

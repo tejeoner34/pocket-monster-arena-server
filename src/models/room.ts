@@ -8,42 +8,38 @@ import { BattleFlow, createBattleFlow } from './battleFlow.js';
 import { updatePokemonHealth } from '../lib/pokemon.utils.js';
 
 export class Room implements OnlineArenaDataType {
-  public readonly id: string;
-  users: string[] = [];
-  isOver: boolean;
-  turnOrder: User['id'][];
-  isTurnOver: boolean;
-  message: string;
-  choseMoves: ChosenMovesType;
-  pokemons: Map<User['id'], ArenaPokemon>;
+  public readonly id: string = uuidv4();
+  users: User[] = [];
+  isOver: boolean = false;
+  turnOrder: User['id'][] = [];
+  isTurnOver: boolean = true;
+  message: string = '';
+  choseMoves: ChosenMovesType = {};
+  pokemons: Map<User['id'], ArenaPokemon> = new Map();
   battleFlow: BattleFlow = [];
   clientsFinished: Set<string> = new Set();
-  isArenaReady: boolean;
+  isArenaReady: boolean = false;
+  private _rivalId: { [key: User['id']]: User['id'] } = {};
 
-  constructor() {
-    this.id = uuidv4();
-    this.isOver = false;
-    this.turnOrder = ['', ''];
-    this.isTurnOver = true;
-    this.message = '';
-    this.choseMoves = {};
-    this.pokemons = new Map();
-    this.isArenaReady = false;
-  }
+  constructor() {}
 
   get bothUsersChoseMoves() {
     return Object.keys(this.choseMoves).length === 2;
   }
 
-  async initialize(users: string[]) {
+  async initialize(users: User[]) {
     this.users = users;
+    this.users.forEach((user) => {
+      this._rivalId[user.id] = user.rivalId!;
+    });
     await this.setPokemonsForUsers();
     this.turnOrder = getTurnOrder(this.pokemons);
     this.isArenaReady = true;
   }
 
   removeUser(userId: string) {
-    this.users = this.users.filter((id) => id !== userId);
+    this.users = this.users.filter((user) => user.id !== userId);
+    delete this._rivalId[userId];
   }
 
   setIsOver() {
@@ -52,17 +48,18 @@ export class Room implements OnlineArenaDataType {
 
   setChosenMoves(userId: string, move: MoveDetail) {
     this.choseMoves[userId] = move;
+    const rivalPokemon = this.getRivalPokemon(userId);
+    rivalPokemon.receivedAttackData = move;
     if (this.bothUsersChoseMoves) {
       this.updatePokemonsHealth();
     }
   }
 
   updatePokemonsHealth() {
-    this.users.forEach((userId) => {
-      const pokemon = this.pokemons.get(userId);
-      if (pokemon) {
-        updatePokemonHealth(pokemon);
-      }
+    this.users.forEach((user) => {
+      const pokemon = this.getPokemon(user.id);
+      const rivalPokemon = this.getRivalPokemon(user.id);
+      updatePokemonHealth(pokemon, rivalPokemon);
     });
     this.setTurnFlow();
   }
@@ -80,14 +77,14 @@ export class Room implements OnlineArenaDataType {
   }
 
   private async addPokemon(userId: string) {
-    const pokemon: ArenaPokemon = initiatePokemonForArena(await getPokemon());
+    const pokemon: ArenaPokemon = initiatePokemonForArena(await getPokemon(), userId);
     this.pokemons.set(userId, pokemon);
   }
 
   private async setPokemonsForUsers() {
     await Promise.all(
-      this.users.map(async (userId) => {
-        await this.addPokemon(userId);
+      this.users.map(async ({ id }) => {
+        await this.addPokemon(id);
       })
     );
   }
@@ -106,5 +103,22 @@ export class Room implements OnlineArenaDataType {
       pokemons: Object.fromEntries(this.pokemons),
       battleFlow: this.battleFlow,
     };
+  }
+
+  private getPokemon(userId: string): ArenaPokemon {
+    const pokemon = this.pokemons.get(userId);
+    if (!pokemon) {
+      throw new Error(`Pokemon for user ${userId} not found`);
+    }
+    return pokemon;
+  }
+
+  private getRivalPokemon(userId: string): ArenaPokemon {
+    const rivalId = this._rivalId[userId];
+    const rivalPokemon = this.pokemons.get(rivalId);
+    if (!rivalPokemon) {
+      throw new Error(`Rival Pokemon for user ${userId} not found`);
+    }
+    return rivalPokemon;
   }
 }

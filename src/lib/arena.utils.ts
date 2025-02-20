@@ -1,4 +1,4 @@
-import { ArenaPokemon, Pokemon } from '../models/pokemon.model.js';
+import { ArenaPokemon, MoveDetail, Pokemon } from '../models/pokemon.model.js';
 import { User } from '../models/user.js';
 
 export const getTurnOrder = (pokemons: Map<User['id'], Pokemon>): User['id'][] => {
@@ -7,10 +7,12 @@ export const getTurnOrder = (pokemons: Map<User['id'], Pokemon>): User['id'][] =
     .map(([userId]) => userId);
 };
 
-export const initiatePokemonForArena = (pokemon: Pokemon): ArenaPokemon => ({
+export const initiatePokemonForArena = (pokemon: Pokemon, trainerId: User['id']): ArenaPokemon => ({
   ...pokemon,
   currentHealth: pokemon.hp,
   currentPercentageHealth: '100%',
   isAlive: true,
   status: 'idle',
+  trainerId: trainerId,
+  receivedAttackData: {} as MoveDetail,
 });

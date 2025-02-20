@@ -1,3 +1,5 @@
+import { User } from './user.js';
+
 export interface Pokemon {
   abilities: Ability[];
   forms: Species[];
@@ -39,6 +41,8 @@ export interface ArenaPokemon extends Pokemon {
   currentHealth: number;
   currentPercentageHealth: string;
   isAlive: boolean;
+  trainerId: User['id'];
+  receivedAttackData: MoveDetail;
 }
 
 export interface Ability {

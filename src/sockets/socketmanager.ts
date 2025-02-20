@@ -38,7 +38,10 @@ export const setupSocketHandlers = (io: Server) => {
       LISTENERS.challengeResponse,
       async ({ userId, accept, rivalId }: ChallengeResponseArgs) => {
         if (accept) {
-          const room = await roomManager.createRoom([userId, rivalId]);
+          const room = await roomManager.createRoom([
+            usersManager.getUser(userId)!,
+            usersManager.getUser(rivalId)!,
+          ]);
           // Add both users to the room
           socket.join(room.id);
           io.to(rivalId).socketsJoin(room.id);
