@@ -59,6 +59,7 @@ export const setupSocketHandlers = (io: Server) => {
       room.setChosenMoves(userId, chosenMove);
       if (room.bothUsersChoseMoves) {
         io.to(room.id).emit(EVENTS.newTurn, { ...room.toPlainObject() });
+        room.resetChosenMoves();
       }
     });
 

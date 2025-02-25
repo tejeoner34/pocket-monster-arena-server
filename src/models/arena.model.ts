@@ -9,7 +9,7 @@ export interface OnlineArenaDataType {
   turnOrder: User['id'][];
   isTurnOver: boolean;
   message: string;
-  choseMoves: ChosenMovesType;
+  chosenMoves: ChosenMovesType;
   isArenaReady: boolean;
 }
 

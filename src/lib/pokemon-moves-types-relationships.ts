@@ -196,7 +196,7 @@ export const getRemainingHP = ({
 }) => {
   if (!attacksPower) return pokemonHP;
   const remainingHP = Math.floor(
-    pokemonHP - (receivedAttackEffectivinessIndex * attackerBasePower * attacksPower) / 100
+    pokemonHP - receivedAttackEffectivinessIndex * (attackerBasePower * 0.2) * attacksPower
   );
   return remainingHP > 0 ? remainingHP : 0;
 };

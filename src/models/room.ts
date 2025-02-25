@@ -15,7 +15,7 @@ export class Room implements OnlineArenaDataType {
   turnOrder: User['id'][] = [];
   isTurnOver: boolean = true;
   message: string = '';
-  choseMoves: ChosenMovesType = {};
+  chosenMoves: ChosenMovesType = {};
   pokemons: Map<User['id'], ArenaPokemon> = new Map();
   battleFlow: BattleFlow = [];
   isArenaReady: boolean = false;
@@ -24,7 +24,7 @@ export class Room implements OnlineArenaDataType {
   constructor() {}
 
   get bothUsersChoseMoves() {
-    return Object.keys(this.choseMoves).length === 2;
+    return Object.keys(this.chosenMoves).length === 2;
   }
 
   async initialize(users: User[]) {
@@ -47,7 +47,7 @@ export class Room implements OnlineArenaDataType {
   }
 
   setChosenMoves(userId: string, move: MoveDetail) {
-    this.choseMoves[userId] = move;
+    this.chosenMoves[userId] = move;
     const rivalPokemon = this.getRivalPokemon(userId);
     rivalPokemon.receivedAttackData = {
       ...move,
@@ -77,6 +77,10 @@ export class Room implements OnlineArenaDataType {
 
   setIsTurnOver(isTurnOver: boolean) {
     this.isTurnOver = isTurnOver;
+  }
+
+  resetChosenMoves() {
+    this.chosenMoves = {};
   }
 
   private async addPokemon(userId: string) {

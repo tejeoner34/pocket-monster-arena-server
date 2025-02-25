@@ -15,7 +15,7 @@ export interface BattleStep {
 
 export type BattleFlow = BattleStep[];
 
-const waitTime = 2000;
+const waitTime = 1300;
 
 export const createBattleFlow = (
   userId1: User['id'],
@@ -34,7 +34,7 @@ export const createBattleFlow = (
       targetId: userId2,
       waitTime,
       pokemonName: user1Pokemon.name,
-      moveName: onlineArenaData.choseMoves[userId1].name,
+      moveName: onlineArenaData.chosenMoves[userId1].name,
       effectivinessInfo: user2Pokemon.receivedAttackData.damageInfo,
     },
     {
@@ -42,7 +42,7 @@ export const createBattleFlow = (
       userId: userId2,
       waitTime,
       pokemonName: user2Pokemon.name,
-      moveName: onlineArenaData.choseMoves[userId1].name,
+      moveName: onlineArenaData.chosenMoves[userId1].name,
     },
     {
       action: 'updateHealthBar',
@@ -50,7 +50,7 @@ export const createBattleFlow = (
       waitTime,
       isGameOver: !user2Pokemon.isAlive,
       pokemonName: user2Pokemon.name,
-      moveName: onlineArenaData.choseMoves[userId1].name,
+      moveName: onlineArenaData.chosenMoves[userId1].name,
     },
     {
       action: 'attack',
@@ -58,7 +58,7 @@ export const createBattleFlow = (
       targetId: userId1,
       waitTime,
       pokemonName: user2Pokemon.name,
-      moveName: onlineArenaData.choseMoves[userId2].name,
+      moveName: onlineArenaData.chosenMoves[userId2].name,
       effectivinessInfo: user1Pokemon.receivedAttackData.damageInfo,
     },
     {
@@ -66,7 +66,7 @@ export const createBattleFlow = (
       userId: userId1,
       waitTime,
       pokemonName: user1Pokemon.name,
-      moveName: onlineArenaData.choseMoves[userId2].name,
+      moveName: onlineArenaData.chosenMoves[userId2].name,
     },
     {
       action: 'updateHealthBar',
@@ -74,7 +74,7 @@ export const createBattleFlow = (
       waitTime,
       isGameOver: !user1Pokemon.isAlive,
       pokemonName: user1Pokemon.name,
-      moveName: onlineArenaData.choseMoves[userId2].name,
+      moveName: onlineArenaData.chosenMoves[userId2].name,
     },
   ];
 };
