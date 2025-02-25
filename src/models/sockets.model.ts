@@ -9,6 +9,7 @@ export const LISTENERS = {
   challengeResponse: 'challenge-response',
   chooseMove: 'choose-move',
   gameOver: 'game-over',
+  leavesRoom: 'leaves-room',
 };
 
 export const EVENTS = {
@@ -18,6 +19,7 @@ export const EVENTS = {
   newTurn: 'new-turn',
   gameOver: 'game-over',
   userDisconnected: 'user-disconnected',
+  leavesRoom: 'leaves-room',
 };
 
 export type ChallengeResponseArgs = {
@@ -33,3 +35,5 @@ export type ChooseMoveArgs = {
 };
 
 export type GameOverArgs = { userId: User['id']; roomId: Room['id'] };
+
+export type UserLeavesRoomArgs = GameOverArgs;

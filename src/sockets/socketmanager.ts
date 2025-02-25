@@ -10,6 +10,7 @@ import {
   ChooseMoveArgs,
   ChallengeResponseArgs,
   GameOverArgs,
+  UserLeavesRoomArgs,
 } from '../models/sockets.model.js';
 
 const roomManager = new RoomsManager();
@@ -68,6 +69,12 @@ export const setupSocketHandlers = (io: Server) => {
         room.isOver = true;
         io.to(room.id).emit(EVENTS.gameOver, { winner: userId });
       }
+    });
+
+    socket.on(LISTENERS.leavesRoom, ({ userId, roomId }: UserLeavesRoomArgs) => {
+      roomManager.removeUserFromRoom(userId, roomId);
+      socket.leave(roomId);
+      io.to(roomId).emit(EVENTS.userDisconnected);
     });
 
     socket.on(LISTENERS.disconnect, () => {
