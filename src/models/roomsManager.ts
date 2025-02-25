@@ -9,6 +9,7 @@ export class RoomsManager {
     userIds.forEach((user) => {
       const rivalId = userIds.find((u) => u.id !== user.id);
       user.setRivalId(rivalId!.id);
+      user.setRoom(room.id);
     });
     await room.initialize(userIds);
     this.rooms.set(room.id, room);
@@ -31,6 +32,7 @@ export class RoomsManager {
     const room = this.rooms.get(roomId);
     if (room) {
       room.removeUser(userId);
+      return room;
     }
   }
 }

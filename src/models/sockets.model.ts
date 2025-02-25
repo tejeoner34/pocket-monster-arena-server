@@ -17,6 +17,7 @@ export const EVENTS = {
   receivedChallenge: 'received-challenge',
   newTurn: 'new-turn',
   gameOver: 'game-over',
+  userDisconnected: 'user-disconnected',
 };
 
 export type ChallengeResponseArgs = {

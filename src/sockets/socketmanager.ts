@@ -42,7 +42,6 @@ export const setupSocketHandlers = (io: Server) => {
             usersManager.getUser(userId)!,
             usersManager.getUser(rivalId)!,
           ]);
-          // Add both users to the room
           socket.join(room.id);
           io.to(rivalId).socketsJoin(room.id);
           io.to(room.id).emit(EVENTS.challengeAccepted, { ...room.toPlainObject() });
@@ -72,10 +71,14 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(LISTENERS.disconnect, () => {
-      usersManager.removeUser(socket.id);
-      const disconnectedUser = usersManager.getUser(socket.id);
+      const disconnectedUser = usersManager.removeUser(socket.id);
       if (disconnectedUser?.roomId) {
-        roomManager.removeUserFromRoom(socket.id, disconnectedUser.roomId);
+        const room = roomManager.removeUserFromRoom(socket.id, disconnectedUser.roomId);
+        if (room) {
+          io.to(room.id).emit(EVENTS.userDisconnected, {
+            disconnectedUserId: disconnectedUser.id,
+          });
+        }
       }
     });
   });

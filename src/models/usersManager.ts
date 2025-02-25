@@ -14,7 +14,11 @@ export class UsersManager {
   }
 
   removeUser(userId: string) {
-    this.users.delete(userId);
+    const user = this.users.get(userId);
+    if (user) {
+      this.users.delete(userId);
+      return user;
+    }
   }
 
   getAllUsers(): User[] {
@@ -25,7 +29,5 @@ export class UsersManager {
     return this.users.has(userId);
   }
 
-  setUserCurrentRoomId(userId: string, roomId: string) {
-    
-  }
+  setUserCurrentRoomId(userId: string, roomId: string) {}
 }
