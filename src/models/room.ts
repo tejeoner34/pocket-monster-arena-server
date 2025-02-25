@@ -1,11 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { ArenaPokemon, MoveDetail, Pokemon } from './pokemon.model.js';
+import { ArenaPokemon, MoveDetail } from './pokemon.model.js';
 import { OnlineArenaDataType, ChosenMovesType } from './arena.model.js';
 import { getPokemon } from '../api/pokemon.js';
 import { getTurnOrder, initiatePokemonForArena } from '../lib/arena.utils.js';
 import { User } from './user.js';
 import { BattleFlow, createBattleFlow } from './battleFlow.js';
 import { updatePokemonHealth } from '../lib/pokemon.utils.js';
+import { getMoveEffectivinesInfo } from '../lib/pokemon-moves-types-relationships.js';
 
 export class Room implements OnlineArenaDataType {
   public readonly id: string = uuidv4();
@@ -17,7 +18,6 @@ export class Room implements OnlineArenaDataType {
   choseMoves: ChosenMovesType = {};
   pokemons: Map<User['id'], ArenaPokemon> = new Map();
   battleFlow: BattleFlow = [];
-  clientsFinished: Set<string> = new Set();
   isArenaReady: boolean = false;
   private _rivalId: { [key: User['id']]: User['id'] } = {};
 
@@ -49,7 +49,10 @@ export class Room implements OnlineArenaDataType {
   setChosenMoves(userId: string, move: MoveDetail) {
     this.choseMoves[userId] = move;
     const rivalPokemon = this.getRivalPokemon(userId);
-    rivalPokemon.receivedAttackData = move;
+    rivalPokemon.receivedAttackData = {
+      ...move,
+      damageInfo: getMoveEffectivinesInfo(move.type.name, rivalPokemon.processedTypes[0]),
+    };
     if (this.bothUsersChoseMoves) {
       this.updatePokemonsHealth();
     }
@@ -87,14 +90,6 @@ export class Room implements OnlineArenaDataType {
         await this.addPokemon(id);
       })
     );
-  }
-
-  clientFinished(userId: string) {
-    this.clientsFinished.add(userId);
-    if (this.clientsFinished.size === this.users.length) {
-      this.clientsFinished.clear();
-      // Proceed to the next set of actions or end the turn
-    }
   }
 
   toPlainObject() {

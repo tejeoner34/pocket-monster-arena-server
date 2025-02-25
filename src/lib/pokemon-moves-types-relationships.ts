@@ -1,4 +1,4 @@
-import { ArenaMoves, PokemonType } from '../models/pokemon.model.js';
+import { DamageLabel, PokemonType } from '../models/pokemon.model.js';
 
 const neutralDamage: TypeEffectivenessEntry = {
   value: 1,
@@ -164,16 +164,9 @@ const typeEffectiveness: TypeEffectivenessMap = {
   },
 };
 
-type TypeEffectivenessLabel =
-  | 'super-effective'
-  | 'normal'
-  | 'not-effective'
-  | 'no-effect'
-  | 'neutral';
-
 interface TypeEffectivenessEntry {
   value: number;
-  label: TypeEffectivenessLabel;
+  label: DamageLabel;
 }
 
 type TypeEffectivenessMap = {

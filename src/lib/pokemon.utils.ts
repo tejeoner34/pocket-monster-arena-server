@@ -1,13 +1,10 @@
-import { ArenaPokemon, MoveDetail } from '../models/pokemon.model.js';
-import { getMoveEffectivinesInfo, getRemainingHP } from './pokemon-moves-types-relationships.js';
+import { ArenaPokemon } from '../models/pokemon.model.js';
+import { getRemainingHP } from './pokemon-moves-types-relationships.js';
 
 export const updatePokemonHealth = (pokemon: ArenaPokemon, attackerPokemon: ArenaPokemon) => {
   const remainingHP = getRemainingHP({
     pokemonHP: pokemon.currentHealth,
-    receivedAttackEffectivinessIndex: getMoveEffectivinesInfo(
-      pokemon.receivedAttackData.type.name,
-      pokemon.processedTypes[0]
-    ).value,
+    receivedAttackEffectivinessIndex: pokemon.receivedAttackData.damageInfo.value,
     attackerBasePower: attackerPokemon.power,
     attacksPower: pokemon.receivedAttackData.power,
   });

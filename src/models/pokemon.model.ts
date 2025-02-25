@@ -42,7 +42,7 @@ export interface ArenaPokemon extends Pokemon {
   currentPercentageHealth: string;
   isAlive: boolean;
   trainerId: User['id'];
-  receivedAttackData: MoveDetail;
+  receivedAttackData: ReceivedMoveDetail;
 }
 
 export interface Ability {
@@ -87,6 +87,17 @@ export interface MoveDetail {
   power: number;
   pp: number;
   type: Type;
+}
+
+export interface ReceivedMoveDetail extends MoveDetail {
+  damageInfo: DamageInfo;
+}
+
+export type DamageLabel = 'super-effective' | 'normal' | 'not-effective' | 'no-effect' | 'neutral';
+
+export interface DamageInfo {
+  label: DamageLabel;
+  value: number;
 }
 
 export interface Type {

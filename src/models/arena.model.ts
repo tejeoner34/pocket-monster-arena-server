@@ -4,7 +4,7 @@ import { User } from './user.js';
 export interface OnlineArenaDataType {
   id: string;
   users: User[];
-  pokemons: Map<string, ArenaPokemon>;
+  pokemons: Map<User['id'], ArenaPokemon>;
   isOver: boolean;
   turnOrder: User['id'][];
   isTurnOver: boolean;
