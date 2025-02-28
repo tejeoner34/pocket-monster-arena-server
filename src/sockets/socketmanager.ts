@@ -1,9 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { RoomsManager } from '../models/roomsManager.js';
 import { UsersManager } from '../models/usersManager.js';
-import { MoveDetail } from '../models/pokemon.model.js';
-import { Room } from '../models/room.js';
-import { User } from '../models/user.js';
+
 import {
   LISTENERS,
   EVENTS,
@@ -68,6 +66,15 @@ export const setupSocketHandlers = (io: Server) => {
       if (room) {
         room.isOver = true;
         io.to(room.id).emit(EVENTS.gameOver, { winner: userId });
+      }
+    });
+
+    socket.on(LISTENERS.rematch, async ({ roomId }: GameOverArgs) => {
+      const room = roomManager.getRoom(roomId);
+      if (room) {
+        console.log('asddada  ');
+        await room.rematch();
+        io.to(room.id).emit(EVENTS.rematch, { ...room.toPlainObject() });
       }
     });
 

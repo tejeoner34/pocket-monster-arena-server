@@ -6,7 +6,7 @@ export interface BattleStep {
   action: string;
   userId: string;
   targetId?: string;
-  waitTime: number; // in milliseconds
+  waitTime: number;
   isGameOver?: boolean;
   pokemonName: ArenaPokemon['name'];
   moveName: MoveDetail['name'];

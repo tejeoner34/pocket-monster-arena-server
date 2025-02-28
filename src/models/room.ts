@@ -28,22 +28,18 @@ export class Room implements OnlineArenaDataType {
   }
 
   async initialize(users: User[]) {
-    this.users = users;
+    this.setUsers(users);
     this.users.forEach((user) => {
       this._rivalId[user.id] = user.rivalId!;
     });
     await this.setPokemonsForUsers();
-    this.turnOrder = getTurnOrder(this.pokemons);
-    this.isArenaReady = true;
+    this.setTurnOrder();
+    this.setArenaIsReady(true);
   }
 
   removeUser(userId: string) {
-    this.users = this.users.filter((user) => user.id !== userId);
+    this.setUsers(this.users.filter((user) => user.id !== userId));
     delete this._rivalId[userId];
-  }
-
-  setIsOver() {
-    this.isOver = true;
   }
 
   setChosenMoves(userId: string, move: MoveDetail) {
@@ -67,6 +63,17 @@ export class Room implements OnlineArenaDataType {
     this.setTurnFlow();
   }
 
+  async rematch() {
+    this.setIsOver(false);
+    this.setIsTurnOver(true);
+    this.resetChosenMoves();
+    this.cleanBattleFlow();
+    this.pokemons.clear();
+    await this.setPokemonsForUsers();
+    this.setTurnOrder();
+    this.setArenaIsReady(true);
+  }
+
   setTurnFlow() {
     this.battleFlow = createBattleFlow(this.turnOrder[0], this.turnOrder[1], this);
   }
@@ -81,6 +88,26 @@ export class Room implements OnlineArenaDataType {
 
   resetChosenMoves() {
     this.chosenMoves = {};
+  }
+
+  private setUsers(users: User[]) {
+    this.users = users;
+  }
+
+  private setIsOver(isOver: boolean) {
+    this.isOver = isOver;
+  }
+
+  private cleanBattleFlow() {
+    this.battleFlow = [];
+  }
+
+  private setArenaIsReady(isReady: boolean) {
+    this.isArenaReady = isReady;
+  }
+
+  private setTurnOrder() {
+    this.turnOrder = getTurnOrder(this.pokemons);
   }
 
   private async addPokemon(userId: string) {

@@ -10,6 +10,7 @@ export const LISTENERS = {
   chooseMove: 'choose-move',
   gameOver: 'game-over',
   leavesRoom: 'leaves-room',
+  rematch: 'rematch',
 };
 
 export const EVENTS = {
@@ -20,6 +21,7 @@ export const EVENTS = {
   gameOver: 'game-over',
   userDisconnected: 'user-disconnected',
   leavesRoom: 'leaves-room',
+  rematch: 'rematch',
 };
 
 export type ChallengeResponseArgs = {
