@@ -72,7 +72,6 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(LISTENERS.rematch, async ({ roomId }: GameOverArgs) => {
       const room = roomManager.getRoom(roomId);
       if (room) {
-        console.log('asddada  ');
         await room.rematch();
         io.to(room.id).emit(EVENTS.rematch, { ...room.toPlainObject() });
       }
