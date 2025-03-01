@@ -43,7 +43,7 @@ export const setupSocketHandlers = (io: Server) => {
           ]);
           socket.join(room.id);
           io.to(rivalId).socketsJoin(room.id);
-          io.to(room.id).emit(EVENTS.challengeAccepted, { ...room.toPlainObject() });
+          io.to(room.id).emit(EVENTS.challengeAccepted, { ...room.toPlainObject(), id: room.id });
         } else {
           io.to(rivalId).emit(EVENTS.challengeRejected);
         }
